@@ -4,6 +4,7 @@ import { BrowserRouter, Switch, Route } from "react-router-dom";
 /**Importacion de componentes */
 import Navigation from '../src/components/Navigation';
 import Usuarios from '../src/components/Usuarios';
+import Categorias from '../src/components/Categorias';
 
 class Router extends Component {
     render() {
@@ -13,10 +14,10 @@ class Router extends Component {
                 {/**Configuracion de las rutas */}
                 <Switch>
                     <Route exact path="/" component={Usuarios} />
-                    <Route exact path="/autos" />
-                    <Route exact path="/piezas" />
-                    <Route exact path="/ventas" />
-                    <Route exact path="/reportes" />
+                    <Route exact path="/categorias" component={Categorias} />
+                    <Route exact path="/productos" />
+                    <Route exact path="/empleados" />
+                    <Route exact path="/usuarios" />
                 </Switch>
             </BrowserRouter>
         );

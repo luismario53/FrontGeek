@@ -9,7 +9,7 @@ class Navigation extends Component {
                 <Navbar.Brand>Agrícola</Navbar.Brand>
                 <Nav className="mr-auto">
                     <NavLink className="nav-link" to="/" >Inicio</NavLink>
-                    <NavLink className="nav-link" to="/categorias">Categoría</NavLink>
+                    <NavLink className="nav-link" to="/categorias">Categorías</NavLink>
                     <NavLink className="nav-link" to="/productos">Productos</NavLink>
                     <NavLink className="nav-link" to="/empleados">Empleados</NavLink>
                     <NavLink className="nav-link" to="/usuarios">Usuarios</NavLink>

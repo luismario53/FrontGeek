@@ -4,27 +4,26 @@ import { Form, Col, Row, Container, Button, Table, InputGroup } from 'react-boot
 import SimpleReactValidator from 'simple-react-validator';
 import axios from 'axios';
 import swal from 'sweetalert2';
-import '../static/css/usuarios.css';
+import '../static/css/categorias.css';
 //
 
-class Usuarios extends Component {
+class Categorias extends Component {
 
-    correoRef = React.createRef();
-    passwordRef = React.createRef();
-    rolRef = React.createRef();
+    nombreRef = React.createRef();
+    descripcionRef = React.createRef();
 
     constructor(props) {
         super(props);
         this.validator = new SimpleReactValidator({
             messages: {
-                email: 'Falta información'
+                default: 'Debe llenar todos los campos',
             },
         });
         this.state = {
-            correo: "",
-            password: "",
-            rol: "",
-            usuarios: [],
+            nombre: '',
+            descripcion: '',
+            categorias: [],
+            selectedFile: null,
             page: 1,
             totalPages: 0
         };
@@ -33,14 +32,21 @@ class Usuarios extends Component {
 
     changeState = () => {
         this.setState({
-            correo: this.correoRef.current.value,
-            password: this.passwordRef.current.value,
-            rol: this.rolRef.current.value,
+            nombre: this.nombreRef.current.value,
+            descripcion: this.descripcionRef.current.value,
         });
+
+    }
+
+    changeStateImagen = (e) => {
+        this.setState({
+            selectedFile: e.target.files[0]
+        });
+
     }
 
     componentDidMount = () => {
-        this.getUsers();
+        this.getCategories();
     }
 
     capitalizeFirstLetter = (string) => {
@@ -55,7 +61,7 @@ class Usuarios extends Component {
                     this.setState({ usuarios: response.data });
                 });
         } else if (e.target.value.toLowerCase().length == 0) {
-            this.getUsers();
+            this.getCategories();
         }
     }
 
@@ -70,7 +76,7 @@ class Usuarios extends Component {
                             icon: 'success',
                             confirmButtonText: 'Okay'
                         });
-                        this.getUsers();
+                        this.getCategories();
                         break;
                     }
                     case 500: {
@@ -86,7 +92,7 @@ class Usuarios extends Component {
             });
     }
 
-    getUsers = () => {
+    getCategories = () => {
         axios.get(`http://127.0.0.1:4000/usuarios/get/${this.state.page}`)
             .then(response => {
                 // if (response.data.length > 0) {
@@ -98,36 +104,49 @@ class Usuarios extends Component {
             });
     }
 
-    saveUser = (e) => {
+    saveCategory = (e) => {
         e.preventDefault();
         if (this.validator.allValid()) {
-            axios.post("http://127.0.0.1:4000/usuarios/add", {
-                correo: this.state.correo,
-                password: this.state.password,
-                rol: this.state.rol
+            axios.post("http://127.0.0.1:4000/categorias/agregar", {
+                nombre: this.state.nombre,
+                descripcion: this.state.descripcion,
+                imagen: "default"
             }).then(response => {
                 switch (response.status) {
                     case 202: {
                         swal.fire({
                             title: 'Error',
-                            text: 'El usuario ya está registrado',
+                            text: 'La categoría ya está registrado',
                             icon: 'error',
                             confirmButtonText: 'Okay'
                         });
                         break;
                     }
                     case 200: {
-                        swal.fire({
-                            title: 'Nicesu',
-                            text: 'Usuario registrado',
-                            icon: 'success',
-                            confirmButtonText: 'Okay'
-                        }).then(result => {
-                            if (result) {
-                                this.clearForm();
-                            }
-                        });
-                        this.getUsers();
+                        if (this.state.selectedFile !== null) {
+                            const formData = new FormData();
+                            formData.append(
+                                'file0',
+                                this.state.selectedFile,
+                                this.state.selectedFile.name
+                            );
+                            axios.patch(`http://127.0.0.1:4000/categorias/upload-image/${this.state.nombre}`,
+                                formData).then(response => {
+                                    if (response.status === 200) {
+                                        swal.fire({
+                                            title: 'Nicesu',
+                                            text: 'Categoría registrada',
+                                            icon: 'success',
+                                            confirmButtonText: 'Okay'
+                                        }).then(result => {
+                                            if (result) {
+                                                this.clearForm();
+                                            }
+                                        });
+                                        this.getCategories();
+                                    }
+                                });
+                        }
                         break;
                     }
                     case 500: {
@@ -195,7 +214,7 @@ class Usuarios extends Component {
             this.setState({
                 page: page - 1
             }, () => {
-                this.getUsers();
+                this.getCategories();
             })
         }
     }
@@ -206,48 +225,48 @@ class Usuarios extends Component {
             this.setState({
                 page: page + 1
             }, () => {
-                this.getUsers();
+                this.getCategories();
             })
         }
     }
 
     render() {
-        const { usuarios } = this.state;
-        const listaUsuarios = usuarios.map(usuario => {
-            return (
-                <tr key={usuario._id}>
-                    <td>{usuario.correo}</td>
-                    <td>{usuario.rol}</td>
-                    <td>********</td>
-                    <td><Button variant="info" onClick={() => this.editUser(usuario)}>Editar</Button></td>
-                    <td><Button variant="danger" onClick={() => this.deleteUser(usuario._id)}>Eliminar</Button></td>
-                </tr>
-            );
-        });
+        // const { usuarios } = this.state;
+        // const listaUsuarios = usuarios.map(usuario => {
+        //     return (
+        //         <tr key={usuario._id}>
+        //             <td>{usuario.correo}</td>
+        //             <td>{usuario.rol}</td>
+        //             <td>********</td>
+        //             <td><Button variant="info" onClick={() => this.editUser(usuario)}>Editar</Button></td>
+        //             <td><Button variant="danger" onClick={() => this.deleteUser(usuario._id)}>Eliminar</Button></td>
+        //         </tr>
+        //     );
+        // });
 
         return (
             <Container className="container-usuarios">
                 <Row xs={1} md={1} lg={2} xl={2} className="mt-3 col-12 ml-1">
                     <Col>
-                        <Form onSubmit={this.saveUser} id="formUsuarios">
+                        <Form onSubmit={this.saveCategory} id="formUsuarios">
                             <Form.Group>
-                                <Form.Control type="text" placeholder="Correo electrónico" name="correo" ref={this.correoRef} onChange={this.changeState} value={this.state.correo}></Form.Control>
-                                {this.validator.message('email', this.state.correo, 'required|email')}
+                                <Form.Control type="text" placeholder="Categoría" name="nombre" ref={this.nombreRef} onChange={this.changeState} value={this.state.nombre}></Form.Control>
+                                {this.validator.message('string', this.state.nombre, 'required|alpha_space')}
                             </Form.Group>
                             <Form.Group>
-                                <Form.Control type="password" placeholder="Contraseña" name="password" ref={this.passwordRef} onChange={this.changeState}></Form.Control>
-                                {this.validator.message('password', this.state.password, 'required|alpha_num')}
+                                <Form.Control type="text" placeholder="Descripción" name="descripcion" ref={this.descripcionRef} onChange={this.changeState} value={this.state.descripcion}></Form.Control>
+                                {this.validator.message('string', this.state.descripcion, 'required|alpha_num_space')}
                             </Form.Group>
                             <Form.Group>
-                                <Form.Control type="text" placeholder="Rol" name="rol" ref={this.rolRef} onChange={this.changeState} value={this.state.rol}></Form.Control>
-                                {this.validator.message('rol', this.state.rol, 'required|alpha')}
+                                <Form.Control type="file" name="imagenCategoria" ref={this.rolRef} onChange={this.changeStateImagen}></Form.Control>
+                                {/* {this.validator.message('imagenCategoria', this.state.rol)} */}
                             </Form.Group>
                             <Form.Row>
                                 <Form.Group as={Col}>
-                                    <Button type="submit" variant="success">Registrar</Button>
+                                    <Button variant="warning" onClick={this.clearForm}>Limpiar campos</Button>
                                 </Form.Group>
                                 <Form.Group as={Col}>
-                                    <Button variant="warning" onClick={this.clearForm}>Limpiar campos</Button>
+                                    <Button type="submit" variant="success">Registrar</Button>
                                 </Form.Group>
                             </Form.Row>
                         </Form>
@@ -266,7 +285,7 @@ class Usuarios extends Component {
                                 </tr>
                             </thead>
                             <tbody id="tbodyId">
-                                {listaUsuarios}
+                                {/* {listaUsuarios} */}
                             </tbody>
                         </Table>
 
@@ -282,4 +301,4 @@ class Usuarios extends Component {
     }
 }
 
-export default Usuarios;
+export default Categorias;
