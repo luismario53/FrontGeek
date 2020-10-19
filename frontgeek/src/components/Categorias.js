@@ -14,6 +14,7 @@ class Productos extends Component {
 
     nombreRef = React.createRef();
     descripcionRef = React.createRef();
+    modalCategoria = React.createRef();
 
     constructor(props) {
         super(props);
@@ -89,30 +90,42 @@ class Productos extends Component {
                 confirmButtonText: 'Okay'
             });
         } else {
-            axios.delete(`http://127.0.0.1:4000/categorias/delete/${id}`)
-                .then(response => {
-                    switch (response.status) {
-                        case 200: {
-                            swal.fire({
-                                title: 'Listo',
-                                text: 'Usuario eliminado',
-                                icon: 'success',
-                                confirmButtonText: 'Okay'
-                            });
-                            this.getCategories();
-                            break;
-                        }
-                        case 500: {
-                            swal.fire({
-                                title: 'Ups',
-                                text: 'Error en el servidor',
-                                icon: 'error',
-                                confirmButtonText: 'chale'
-                            });
-                            break;
-                        }
-                    }
-                });
+            swal.fire({
+                title: 'mmm',
+                text: 'Esta seguro que desea eliminar esta categoria?',
+                icon: 'warning',
+                showCancelButton: true,
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: 'Okay'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    axios.delete(`http://127.0.0.1:4000/categorias/delete/${id}`)
+                        .then(response => {
+                            switch (response.status) {
+                                case 200: {
+                                    swal.fire({
+                                        title: 'Listo',
+                                        text: 'Usuario eliminado',
+                                        icon: 'success',
+                                        confirmButtonText: 'Okay'
+                                    });
+                                    this.getCategories();
+                                    break;
+                                }
+                                case 500: {
+                                    swal.fire({
+                                        title: 'Ups',
+                                        text: 'Error en el servidor',
+                                        icon: 'error',
+                                        confirmButtonText: 'chale'
+                                    });
+                                    break;
+                                }
+                            }
+                        });
+                }
+            });
+
         }
     }
 
@@ -161,11 +174,8 @@ class Productos extends Component {
                                         text: 'Categoría registrada',
                                         icon: 'success',
                                         confirmButtonText: 'Okay'
-                                    }).then(result => {
-                                        if (result) {
-                                            this.clearForm();
-                                        }
                                     });
+                                    this.modalCategoria.current.setState({ show: false });
                                     this.getCategories();
                                 }
                             });
@@ -192,7 +202,6 @@ class Productos extends Component {
         }).then(response => {
             if (categoria.imagen !== null && categoria.imagen !== undefined) {
                 const formData = new FormData();
-
                 formData.append(
                     'file0',
                     categoria.imagen,
@@ -251,7 +260,7 @@ class Productos extends Component {
                     <td>{categoria.descripcion}</td>
                     <td>{categoria.productos.length}</td>
                     <td><ModalCategorias button="Editar" imageButton="Cambiar foto" formButton="Actualizar" categoria={categoria} editarCategoria={this.updateCategory} /></td>
-                    <td><Button variant="danger" onClick={() => this.deleteUser(categoria._id, categoria.productos.length)}>Eliminar</Button></td>
+                    <td><Button variant="danger" onClick={() => this.deleteCategory(categoria._id, categoria.productos.length)}>Eliminar</Button></td>
                 </tr>
             );
         });
@@ -266,6 +275,7 @@ class Productos extends Component {
                 <Row className="mb-4">
                     <Col>
                         <ModalCategorias
+                            ref={this.modalCategoria}
                             button="Agregar"
                             imageButton="Subir foto"
                             formButton="Guardar"

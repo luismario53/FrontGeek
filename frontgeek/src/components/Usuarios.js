@@ -48,7 +48,7 @@ class Usuarios extends Component {
     }
 
     searchUserByRol = (e) => {
-        var rol = this.capitalizeFirstLetter(e.target.value);
+        var rol = this.capitalizeFirstLetter(e.target.value.toLowerCase());
         if (e.target.value.toLowerCase().length >= 3) {
             axios.get(`http://127.0.0.1:4000/usuarios/getbyrol/${rol}`)
                 .then(response => {
@@ -155,40 +155,6 @@ class Usuarios extends Component {
         document.getElementById('formUsuarios').reset();
     }
 
-    editUser = (usuario) => {
-        this.setState({
-            correo: usuario.correo,
-            rol: usuario.rol
-        });
-        // if (this.state.text === "Editar") {
-        //     this.setState({
-        //         editable: true,
-        //         cancelarBoton: false,
-        //         text: "Guardar"
-        //     }, () => {
-
-        //     })
-        // } else {
-        //     this.setState({
-        //         editable: false,
-        //         cancelarBoton: true,
-        //         text: "Editar"
-        //     }, () => {
-
-        //     })
-        // }
-    }
-
-    cancelarEditar = (id) => {
-        this.setState({
-            editable: false,
-            cancelarBoton: true,
-            text: "Editar"
-        }, () => {
-
-        })
-    }
-
     previousPage = () => {
         var { page } = this.state;
         if (page > 1) {
@@ -244,10 +210,10 @@ class Usuarios extends Component {
                             </Form.Group>
                             <Form.Row>
                                 <Form.Group as={Col}>
-                                    <Button type="submit" variant="success">Registrar</Button>
+                                    <Button variant="warning" onClick={this.clearForm}>Limpiar campos</Button>
                                 </Form.Group>
                                 <Form.Group as={Col}>
-                                    <Button variant="warning" onClick={this.clearForm}>Limpiar campos</Button>
+                                    <Button type="submit" variant="success">Registrar</Button>
                                 </Form.Group>
                             </Form.Row>
                         </Form>
