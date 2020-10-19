@@ -13,11 +13,11 @@ class Router extends Component {
                 <Navigation />
                 {/**Configuracion de las rutas */}
                 <Switch>
-                    <Route exact path="/" component={Usuarios} />
+                    <Route exact path="/" />
                     <Route exact path="/categorias" component={Categorias} />
                     <Route exact path="/productos" />
                     <Route exact path="/empleados" />
-                    <Route exact path="/usuarios" />
+                    <Route exact path="/usuarios" component={Usuarios} />
                 </Switch>
             </BrowserRouter>
         );

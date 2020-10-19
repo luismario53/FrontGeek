@@ -5,9 +5,12 @@ import SimpleReactValidator from 'simple-react-validator';
 import axios from 'axios';
 import swal from 'sweetalert2';
 import '../static/css/categorias.css';
+import sampleProfile from '../static/img/sample-profile.png';
+import ModalCategorias from './ModalCategorias';
+import '../static/css/productos.css'
 //
 
-class Categorias extends Component {
+class Productos extends Component {
 
     nombreRef = React.createRef();
     descripcionRef = React.createRef();
@@ -20,12 +23,14 @@ class Categorias extends Component {
             },
         });
         this.state = {
+            modulo: 'Categorías',
             nombre: '',
             descripcion: '',
             categorias: [],
             selectedFile: null,
             page: 1,
-            totalPages: 0
+            totalPages: 0,
+            samplePicture: sampleProfile
         };
 
     }
@@ -38,8 +43,18 @@ class Categorias extends Component {
 
     }
 
+    clearForm = () => {
+        this.setState({
+            correo: "",
+            rol: "",
+            samplePicture: sampleProfile
+        })
+        document.getElementById('formUsuarios').reset();
+    }
+
     changeStateImagen = (e) => {
         this.setState({
+            samplePicture: URL.createObjectURL(e.target.files[0]),
             selectedFile: e.target.files[0]
         });
 
@@ -56,7 +71,7 @@ class Categorias extends Component {
     searchUserByRol = (e) => {
         var rol = this.capitalizeFirstLetter(e.target.value);
         if (e.target.value.toLowerCase().length >= 3) {
-            axios.get(`http://127.0.0.1:4000/usuarios/getbyrol/${rol}`)
+            axios.get(`http://127.0.0.1:4000/categorias/getbyrol/${rol}`)
                 .then(response => {
                     this.setState({ usuarios: response.data });
                 });
@@ -65,147 +80,143 @@ class Categorias extends Component {
         }
     }
 
-    deleteUser = (id) => {
-        axios.delete(`http://127.0.0.1:4000/usuarios/delete/${id}`)
-            .then(response => {
-                switch (response.status) {
-                    case 200: {
-                        swal.fire({
-                            title: 'Listo',
-                            text: 'Usuario eliminado',
-                            icon: 'success',
-                            confirmButtonText: 'Okay'
-                        });
-                        this.getCategories();
-                        break;
-                    }
-                    case 500: {
-                        swal.fire({
-                            title: 'Ups',
-                            text: 'Error en el servidor',
-                            icon: 'error',
-                            confirmButtonText: 'chale'
-                        });
-                        break;
-                    }
-                }
+    deleteCategory = (id, qty) => {
+        if (qty > 0) {
+            swal.fire({
+                title: 'Ups',
+                text: 'No puede eliminar una categoría si tiene productos.',
+                icon: 'error',
+                confirmButtonText: 'Okay'
             });
+        } else {
+            axios.delete(`http://127.0.0.1:4000/categorias/delete/${id}`)
+                .then(response => {
+                    switch (response.status) {
+                        case 200: {
+                            swal.fire({
+                                title: 'Listo',
+                                text: 'Usuario eliminado',
+                                icon: 'success',
+                                confirmButtonText: 'Okay'
+                            });
+                            this.getCategories();
+                            break;
+                        }
+                        case 500: {
+                            swal.fire({
+                                title: 'Ups',
+                                text: 'Error en el servidor',
+                                icon: 'error',
+                                confirmButtonText: 'chale'
+                            });
+                            break;
+                        }
+                    }
+                });
+        }
     }
 
     getCategories = () => {
-        axios.get(`http://127.0.0.1:4000/usuarios/get/${this.state.page}`)
+        axios.get(`http://127.0.0.1:4000/categorias/get/${this.state.page}`)
             .then(response => {
                 // if (response.data.length > 0) {
                 this.setState({
-                    usuarios: response.data.users,
+                    categorias: response.data.categories,
                     totalPages: response.data.size
                 });
                 // }
             });
     }
 
-    saveCategory = (e) => {
-        e.preventDefault();
-        if (this.validator.allValid()) {
-            axios.post("http://127.0.0.1:4000/categorias/agregar", {
-                nombre: this.state.nombre,
-                descripcion: this.state.descripcion,
-                imagen: "default"
-            }).then(response => {
-                switch (response.status) {
-                    case 202: {
-                        swal.fire({
-                            title: 'Error',
-                            text: 'La categoría ya está registrado',
-                            icon: 'error',
-                            confirmButtonText: 'Okay'
-                        });
-                        break;
+    saveCategory = (categoria) => {
+        axios.post("http://127.0.0.1:4000/categorias/agregar", {
+            nombre: categoria.nombre,
+            descripcion: categoria.descripcion,
+            imagen: "default",
+            productos: []
+        }).then(response => {
+            switch (response.status) {
+                case 202: {
+                    swal.fire({
+                        title: 'Error',
+                        text: 'La categoría ya está registrado',
+                        icon: 'error',
+                        confirmButtonText: 'Okay'
+                    });
+                    break;
+                }
+                case 200: {
+                    if (categoria.imagen !== null) {
+                        const formData = new FormData();
+                        formData.append(
+                            'file0',
+                            categoria.imagen,
+                            categoria.imagen.name
+                        );
+                        axios.patch(`http://127.0.0.1:4000/categorias/upload-image/${response.data._id}`,
+                            formData).then(response => {
+                                if (response.status === 200) {
+                                    swal.fire({
+                                        title: 'Nicesu',
+                                        text: 'Categoría registrada',
+                                        icon: 'success',
+                                        confirmButtonText: 'Okay'
+                                    }).then(result => {
+                                        if (result) {
+                                            this.clearForm();
+                                        }
+                                    });
+                                    this.getCategories();
+                                }
+                            });
                     }
-                    case 200: {
-                        if (this.state.selectedFile !== null) {
-                            const formData = new FormData();
-                            formData.append(
-                                'file0',
-                                this.state.selectedFile,
-                                this.state.selectedFile.name
-                            );
-                            axios.patch(`http://127.0.0.1:4000/categorias/upload-image/${this.state.nombre}`,
-                                formData).then(response => {
-                                    if (response.status === 200) {
-                                        swal.fire({
-                                            title: 'Nicesu',
-                                            text: 'Categoría registrada',
-                                            icon: 'success',
-                                            confirmButtonText: 'Okay'
-                                        }).then(result => {
-                                            if (result) {
-                                                this.clearForm();
-                                            }
-                                        });
-                                        this.getCategories();
-                                    }
-                                });
+                    break;
+                }
+                case 500: {
+                    swal.fire({
+                        title: 'Ups',
+                        text: 'Error en el servidor',
+                        icon: 'error',
+                        confirmButtonText: 'chale'
+                    });
+                    break;
+                }
+            }
+        });
+    }
+
+    updateCategory = (categoria) => {
+        axios.patch(`http://127.0.0.1:4000/categorias/update/${categoria.id}`, {
+            nombre: categoria.nombre,
+            descripcion: categoria.descripcion
+        }).then(response => {
+            if (categoria.imagen !== null && categoria.imagen !== undefined) {
+                const formData = new FormData();
+
+                formData.append(
+                    'file0',
+                    categoria.imagen,
+                    categoria.imagen.name
+                );
+                axios.patch(`http://127.0.0.1:4000/categorias/upload-image/${categoria.id}`,
+                    formData).then(response => {
+                        if (response.status === 200) {
+
                         }
-                        break;
-                    }
-                    case 500: {
-                        swal.fire({
-                            title: 'Ups',
-                            text: 'Error en el servidor',
-                            icon: 'error',
-                            confirmButtonText: 'chale'
-                        });
-                        break;
-                    }
+                    });
+            }
+            this.getCategories();
+            swal.fire({
+                title: 'Nicesu',
+                text: 'Categoría actualizada',
+                icon: 'success',
+                confirmButtonText: 'Okay'
+            }).then(result => {
+                if (result) {
+                    this.clearForm();
                 }
             });
-        } else {
-            this.forceUpdate();
-            this.validator.showMessages();
-        }
-    }
-
-    clearForm = () => {
-        this.setState({
-            correo: "",
-            rol: "",
-        })
-        document.getElementById('formUsuarios').reset();
-    }
-
-    editUser = (usuario) => {
-        this.setState({
-            correo: usuario.correo,
-            rol: usuario.rol
         });
-        // if (this.state.text === "Editar") {
-        //     this.setState({
-        //         editable: true,
-        //         cancelarBoton: false,
-        //         text: "Guardar"
-        //     }, () => {
-
-        //     })
-        // } else {
-        //     this.setState({
-        //         editable: false,
-        //         cancelarBoton: true,
-        //         text: "Editar"
-        //     }, () => {
-
-        //     })
-        // }
-    }
-
-    cancelarEditar = (id) => {
-        this.setState({
-            editable: false,
-            cancelarBoton: true,
-            text: "Editar"
-        }, () => {
-
-        })
     }
 
     previousPage = () => {
@@ -231,74 +242,62 @@ class Categorias extends Component {
     }
 
     render() {
-        // const { usuarios } = this.state;
-        // const listaUsuarios = usuarios.map(usuario => {
-        //     return (
-        //         <tr key={usuario._id}>
-        //             <td>{usuario.correo}</td>
-        //             <td>{usuario.rol}</td>
-        //             <td>********</td>
-        //             <td><Button variant="info" onClick={() => this.editUser(usuario)}>Editar</Button></td>
-        //             <td><Button variant="danger" onClick={() => this.deleteUser(usuario._id)}>Eliminar</Button></td>
-        //         </tr>
-        //     );
-        // });
+
+        const { categorias } = this.state;
+        const listaCategorias = categorias.map(categoria => {
+            return (
+                <tr key={categoria._id}>
+                    <td>{categoria.nombre}</td>
+                    <td>{categoria.descripcion}</td>
+                    <td>{categoria.productos.length}</td>
+                    <td><ModalCategorias button="Editar" imageButton="Cambiar foto" formButton="Actualizar" categoria={categoria} editarCategoria={this.updateCategory} /></td>
+                    <td><Button variant="danger" onClick={() => this.deleteUser(categoria._id, categoria.productos.length)}>Eliminar</Button></td>
+                </tr>
+            );
+        });
 
         return (
-            <Container className="container-usuarios">
-                <Row xs={1} md={1} lg={2} xl={2} className="mt-3 col-12 ml-1">
+            <Container className="mt-4">
+                <Row lg={1} md={1} className="mb-4">
                     <Col>
-                        <Form onSubmit={this.saveCategory} id="formUsuarios">
-                            <Form.Group>
-                                <Form.Control type="text" placeholder="Categoría" name="nombre" ref={this.nombreRef} onChange={this.changeState} value={this.state.nombre}></Form.Control>
-                                {this.validator.message('string', this.state.nombre, 'required|alpha_space')}
-                            </Form.Group>
-                            <Form.Group>
-                                <Form.Control type="text" placeholder="Descripción" name="descripcion" ref={this.descripcionRef} onChange={this.changeState} value={this.state.descripcion}></Form.Control>
-                                {this.validator.message('string', this.state.descripcion, 'required|alpha_num_space')}
-                            </Form.Group>
-                            <Form.Group>
-                                <Form.Control type="file" name="imagenCategoria" ref={this.rolRef} onChange={this.changeStateImagen}></Form.Control>
-                                {/* {this.validator.message('imagenCategoria', this.state.rol)} */}
-                            </Form.Group>
-                            <Form.Row>
-                                <Form.Group as={Col}>
-                                    <Button variant="warning" onClick={this.clearForm}>Limpiar campos</Button>
-                                </Form.Group>
-                                <Form.Group as={Col}>
-                                    <Button type="submit" variant="success">Registrar</Button>
-                                </Form.Group>
-                            </Form.Row>
-                        </Form>
+                        <h1 className="label-categoria">{this.state.modulo}</h1>
                     </Col>
-                    <Col className="col-8 properties-tabla-autos">
-                        <InputGroup className="mb-3">
-                            <Form.Control placeholder="Buscar usuario" onKeyUp={this.searchUserByRol}></Form.Control>
-                        </InputGroup>
+                </Row>
+                <Row className="mb-4">
+                    <Col>
+                        <ModalCategorias
+                            button="Agregar"
+                            imageButton="Subir foto"
+                            formButton="Guardar"
+                            guardarCategoria={this.saveCategory}
+                        />
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
                         <Table responsive striped bordered hover size="sm" className="tabla-mouse">
                             <thead>
                                 <tr>
-                                    <th>Rol</th>
-                                    <th>Correo electrónico</th>
-                                    <th>Contraseña</th>
-                                    <th colSpan={2}>Opciones</th>
+                                    <th lg={2}>Nombre</th>
+                                    <th lg={5}>Descripción</th>
+                                    <th lg={2}># productos</th>
+                                    <th colSpan={2} lg={3}>Opciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tbodyId">
-                                {/* {listaUsuarios} */}
+                                {listaCategorias}
                             </tbody>
                         </Table>
-
                         <div className="page-buttons">
                             <Button variant="primary" className="mr-2 arrow-buttons" onClick={this.previousPage}>{`<`}</Button>
                             <Button variant="primary" className="ml-2 arrow-buttons" onClick={this.nextPage}>{`>`}</Button>
                         </div>
-
                     </Col>
                 </Row>
-            </Container >
+            </Container>
+
         );
     }
 }
 
-export default Categorias;
+export default Productos;
