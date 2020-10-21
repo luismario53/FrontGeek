@@ -5,6 +5,7 @@ import SimpleReactValidator from 'simple-react-validator';
 import axios from 'axios';
 import swal from 'sweetalert2';
 import '../static/css/usuarios.css';
+import RolSelect from 'react-select-search';
 //
 
 class Usuarios extends Component {
@@ -21,21 +22,33 @@ class Usuarios extends Component {
             },
         });
         this.state = {
+            isAdmin: false,
+            id: "",
             correo: "",
             password: "",
             rol: "",
             usuarios: [],
             page: 1,
-            totalPages: 0
+            totalPages: 0,
+            greenButton: "Registrar",
+            ywButton: "Limpir campos",
+            roles: [
+                { name: "Administrador", value: "Administrador" },
+                { name: "Auxiliar", value: "Auxiliar" },
+                { name: "Consultor", value: "Consultor" }
+            ]
         };
 
+    }
+
+    handleChangeRol = (rol) => {
+        this.setState({ rol: rol });
     }
 
     changeState = () => {
         this.setState({
             correo: this.correoRef.current.value,
-            password: this.passwordRef.current.value,
-            rol: this.rolRef.current.value,
+            password: this.passwordRef.current.value
         });
     }
 
@@ -60,43 +73,77 @@ class Usuarios extends Component {
     }
 
     deleteUser = (id) => {
-        axios.delete(`http://127.0.0.1:4000/usuarios/delete/${id}`)
-            .then(response => {
-                switch (response.status) {
-                    case 200: {
-                        swal.fire({
-                            title: 'Listo',
-                            text: 'Usuario eliminado',
-                            icon: 'success',
-                            confirmButtonText: 'Okay'
-                        });
-                        this.getUsers();
-                        break;
-                    }
-                    case 500: {
-                        swal.fire({
-                            title: 'Ups',
-                            text: 'Error en el servidor',
-                            icon: 'error',
-                            confirmButtonText: 'chale'
-                        });
-                        break;
-                    }
-                }
-            });
+        swal.fire({
+            title: 'mmm',
+            text: 'Esta seguro que desea eliminar este usuario?',
+            icon: 'warning',
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar',
+            confirmButtonText: 'Okay'
+        }).then(result => {
+            if (result.isConfirmed) {
+                axios.delete(`http://127.0.0.1:4000/usuarios/delete/${id}`)
+                    .then(response => {
+                        switch (response.status) {
+                            case 200: {
+                                swal.fire({
+                                    title: 'Listo',
+                                    text: 'Usuario eliminado',
+                                    icon: 'success',
+                                    confirmButtonText: 'Okay'
+                                });
+                                this.getUsers();
+                                break;
+                            }
+                            case 500: {
+                                swal.fire({
+                                    title: 'Ups',
+                                    text: 'Error en el servidor',
+                                    icon: 'error',
+                                    confirmButtonText: 'chale'
+                                });
+                                break;
+                            }
+                        }
+                    });
+            }
+        });
     }
 
     getUsers = () => {
-        axios.get(`http://127.0.0.1:4000/usuarios/get/${this.state.page}`)
-            .then(response => {
-                // if (response.data.length > 0) {
-                this.setState({
-                    usuarios: response.data.users,
-                    totalPages: response.data.size
-                });
-                // }
+        axios.get(`http://127.0.0.1:4000/usuarios/${this.state.page}`, {
+            headers: {
+                "Authorization": localStorage.getItem("token")
+            }
+        }).then(response => {
+            this.setState({
+                isAdmin: true,
+                usuarios: response.data.users,
+                totalPages: response.data.size
             });
+        }).catch(error => {
+            this.setState({ isAdmin: false });
+        });
     }
+
+    updateUser = (user) => {
+        this.setState({
+            id: user._id,
+            correo: user.correo,
+            rol: user.rol.rol,
+            greenButton: "Actualizar",
+            ywButton: "Cancelar"
+        })
+    }
+
+    // handleButton = (e, user) => {
+    //     e.preventDefault();
+    //     if (this.state.greenButton === "Registrar") {
+    //         this.saveUser();
+    //     } else {
+    //         this.updateUser(user);
+    //     }
+    // }
 
     saveUser = (e) => {
         e.preventDefault();
@@ -148,11 +195,18 @@ class Usuarios extends Component {
     }
 
     clearForm = () => {
+        if (this.state.ywButton === "Cancelar") {
+            this.setState({
+                greenButton: "Registrar",
+                ywButton: "Limpiar campos"
+            })
+        }
         this.setState({
             correo: "",
-            rol: "",
+            password: "",
+            rol: ""
         })
-        document.getElementById('formUsuarios').reset();
+        //document.getElementById('formUsuarios').reset();
     }
 
     previousPage = () => {
@@ -183,9 +237,9 @@ class Usuarios extends Component {
             return (
                 <tr key={usuario._id}>
                     <td>{usuario.correo}</td>
-                    <td>{usuario.rol}</td>
+                    <td>{usuario.rol.rol}</td>
                     <td>********</td>
-                    <td><Button variant="info" onClick={() => this.editUser(usuario)}>Editar</Button></td>
+                    <td><Button variant="info" onClick={() => this.updateUser(usuario)}>Editar</Button></td>
                     <td><Button variant="danger" onClick={() => this.deleteUser(usuario._id)}>Eliminar</Button></td>
                 </tr>
             );
@@ -201,19 +255,23 @@ class Usuarios extends Component {
                                 {this.validator.message('email', this.state.correo, 'required|email')}
                             </Form.Group>
                             <Form.Group>
-                                <Form.Control type="password" placeholder="Contraseña" name="password" ref={this.passwordRef} onChange={this.changeState}></Form.Control>
+                                <Form.Control type="password" placeholder="Contraseña" name="password" ref={this.passwordRef} onChange={this.changeState} value={this.state.password}></Form.Control>
                                 {this.validator.message('password', this.state.password, 'required|alpha_num')}
                             </Form.Group>
                             <Form.Group>
-                                <Form.Control type="text" placeholder="Rol" name="rol" ref={this.rolRef} onChange={this.changeState} value={this.state.rol}></Form.Control>
-                                {this.validator.message('rol', this.state.rol, 'required|alpha')}
+                                <RolSelect
+                                    onChange={rol => this.handleChangeRol(rol)}
+                                    options={this.state.roles}
+                                    placeholder="Seleccione rol"
+                                    value={this.state.rol}
+                                />
                             </Form.Group>
                             <Form.Row>
                                 <Form.Group as={Col}>
-                                    <Button variant="warning" onClick={this.clearForm}>Limpiar campos</Button>
+                                    <Button variant="warning" onClick={this.clearForm}>{this.state.ywButton}</Button>
                                 </Form.Group>
                                 <Form.Group as={Col}>
-                                    <Button type="submit" variant="success">Registrar</Button>
+                                    <Button type="submit" variant="success">{this.state.greenButton}</Button>
                                 </Form.Group>
                             </Form.Row>
                         </Form>

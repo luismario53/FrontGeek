@@ -5,15 +5,13 @@ import SimpleReactValidator from 'simple-react-validator';
 import axios from 'axios';
 import swal from 'sweetalert2';
 import '../static/css/categorias.css';
-import sampleProfile from '../static/img/sample-profile.png';
 import ModalCategorias from './ModalCategorias';
-import '../static/css/productos.css'
+import '../static/css/categorias.css';
+import '../static/css/selected.css';
 //
 
-class Productos extends Component {
+class Categorias extends Component {
 
-    nombreRef = React.createRef();
-    descripcionRef = React.createRef();
     modalCategoria = React.createRef();
 
     constructor(props) {
@@ -25,45 +23,40 @@ class Productos extends Component {
         });
         this.state = {
             modulo: 'Categorías',
-            nombre: '',
-            descripcion: '',
             categorias: [],
-            selectedFile: null,
             page: 1,
-            totalPages: 0,
-            samplePicture: sampleProfile
+            totalPages: 0
         };
-
     }
 
-    changeState = () => {
-        this.setState({
-            nombre: this.nombreRef.current.value,
-            descripcion: this.descripcionRef.current.value,
-        });
-
-    }
-
-    clearForm = () => {
-        this.setState({
-            correo: "",
-            rol: "",
-            samplePicture: sampleProfile
-        })
-        document.getElementById('formUsuarios').reset();
-    }
-
-    changeStateImagen = (e) => {
-        this.setState({
-            samplePicture: URL.createObjectURL(e.target.files[0]),
-            selectedFile: e.target.files[0]
-        });
-
-    }
-
-    componentDidMount = () => {
+    componentDidMount = () =>{
         this.getCategories();
     }
+
+    // changeState = () => {
+    //     this.setState({
+    //         nombre: this.nombreRef.current.value,
+    //         descripcion: this.descripcionRef.current.value,
+    //     });
+
+    // }
+
+    // clearForm = () => {
+    //     this.setState({
+    //         correo: "",
+    //         rol: "",
+    //         samplePicture: sampleProfile
+    //     })
+    //     document.getElementById('formUsuarios').reset();
+    // }
+
+    // changeStateImagen = (e) => {
+    //     this.setState({
+    //         samplePicture: URL.createObjectURL(e.target.files[0]),
+    //         selectedFile: e.target.files[0]
+    //     });
+
+    // }
 
     capitalizeFirstLetter = (string) => {
         return string.charAt(0).toUpperCase() + string.slice(1);
@@ -130,15 +123,18 @@ class Productos extends Component {
     }
 
     getCategories = () => {
-        axios.get(`http://127.0.0.1:4000/categorias/get/${this.state.page}`)
-            .then(response => {
-                // if (response.data.length > 0) {
-                this.setState({
-                    categorias: response.data.categories,
-                    totalPages: response.data.size
-                });
-                // }
+        axios.get(`http://127.0.0.1:4000/categorias/${this.state.page}`, {
+            headers: {
+                "Authorization": localStorage.getItem("token")
+            }
+        }).then(response => {
+            // if (response.data.length > 0) {
+            this.setState({
+                categorias: response.data.categories,
+                totalPages: response.data.size
             });
+            // }
+        });
     }
 
     saveCategory = (categoria) => {
@@ -222,7 +218,7 @@ class Productos extends Component {
                 confirmButtonText: 'Okay'
             }).then(result => {
                 if (result) {
-                    this.clearForm();
+                    this.modalCategoria.current.setState({ show: false });
                 }
             });
         });
@@ -310,4 +306,4 @@ class Productos extends Component {
     }
 }
 
-export default Productos;
+export default Categorias;

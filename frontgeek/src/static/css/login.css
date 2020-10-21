@@ -1,0 +1,16 @@
+
+.container-login{
+    width: 55% !important;
+}
+
+.sesion-btn{
+    background-color: darkseagreen !important;
+    border-color: darkseagreen !important;
+    box-shadow: 2px 2px 5px black;
+}
+
+.sesion-btn:active{
+    background-color: #6e916e;
+    border-color: darkseagreen !important;
+    transform: translateY(4px);
+}
