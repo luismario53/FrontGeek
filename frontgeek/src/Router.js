@@ -18,7 +18,8 @@ class Router extends Component {
 
         this.state = {
             isLogin: false,
-            isAdmin: false
+            token: '',
+            id: ''
         };
     }
 
@@ -28,7 +29,11 @@ class Router extends Component {
                 "Authorization": localStorage.getItem("token")
             }
         }).then(response => {
-            this.setState({ isLogin: true });
+            this.setState({
+                isLogin: true,
+                token: localStorage.getItem("token"),
+                id: localStorage.getItem("id")
+            });
         }).catch(error => {
             this.setState({ isLogin: false });
         });
@@ -44,23 +49,23 @@ class Router extends Component {
                 <Switch>
                     {!this.state.isLogin
                         ? <Route exact path="/" component={Login} />
-                        : <Route exact path="/" render={(props) => <Inicio {...props} isLogin={this.state.isLogin} />} />
+                        : <Route exact path="/" render={(props) => <Inicio {...props} isLogin={this.state.isLogin} token={this.state.token} id={this.state.id} />} />
                     }
                     {!this.state.isLogin
                         ? <Redirect to="/" />
-                        : <Route exact path="/categorias" render={(props) => <Categorias {...props} isLogin={this.state.isLogin} />} />
+                        : <Route exact path="/categorias" render={(props) => <Categorias {...props} isLogin={this.state.isLogin} token={this.state.token} id={this.state.id} />} />
                     }
                     {!this.state.isLogin
                         ? <Redirect to="/" />
-                        : <Route exact path="/productos" render={(props) => <Productos {...props} isLogin={this.state.isLogin} />} />
+                        : <Route exact path="/productos" render={(props) => <Productos {...props} isLogin={this.state.isLogin} token={this.state.token} id={this.state.id} />} />
                     }
                     {!this.state.isLogin
                         ? <Redirect to="/" />
-                        : <Route exact path="/empleados" render={(props) => <Empleados {...props} isLogin={this.state.isLogin} />} />
+                        : <Route exact path="/empleados" render={(props) => <Empleados {...props} isLogin={this.state.isLogin} token={this.state.token} id={this.state.id} />} />
                     }
                     {!this.state.isLogin
                         ? <Redirect to="/" />
-                        : <Route exact path="/usuarios" render={(props) => <Usuarios {...props} isLogin={this.state.isLogin} />} />
+                        : <Route exact path="/usuarios" render={(props) => <Usuarios {...props} isLogin={this.state.isLogin} token={this.state.token} id={this.state.id} />} />
                     }
                 </Switch>
             </BrowserRouter>

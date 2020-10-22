@@ -47,6 +47,7 @@ class Login extends Component {
                 });
             } else {
                 localStorage.setItem("token", response.data.token);
+                localStorage.setItem("id", response.data.id);
                 // localStorage.setItem("rol", response.data.rol);
                 window.location.reload();
                 // this.setState({ redirect: true });
@@ -86,9 +87,6 @@ class Login extends Component {
                         </Form>
                     </Col>
                 </div>
-                <Form.Group>
-                    <Button onClick={this.validarToken} variant="success" className="sesion-btn">Validar token</Button>
-                </Form.Group>
             </Container>
         );
     }

@@ -29,43 +29,21 @@ class Categorias extends Component {
         };
     }
 
-    componentDidMount = () =>{
+    componentDidMount = () => {
         this.getCategories();
     }
-
-    // changeState = () => {
-    //     this.setState({
-    //         nombre: this.nombreRef.current.value,
-    //         descripcion: this.descripcionRef.current.value,
-    //     });
-
-    // }
-
-    // clearForm = () => {
-    //     this.setState({
-    //         correo: "",
-    //         rol: "",
-    //         samplePicture: sampleProfile
-    //     })
-    //     document.getElementById('formUsuarios').reset();
-    // }
-
-    // changeStateImagen = (e) => {
-    //     this.setState({
-    //         samplePicture: URL.createObjectURL(e.target.files[0]),
-    //         selectedFile: e.target.files[0]
-    //     });
-
-    // }
 
     capitalizeFirstLetter = (string) => {
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
     searchUserByRol = (e) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         var rol = this.capitalizeFirstLetter(e.target.value);
         if (e.target.value.toLowerCase().length >= 3) {
-            axios.get(`http://127.0.0.1:4000/categorias/getbyrol/${rol}`)
+            axios.get(`http://127.0.0.1:4000/categorias/getbyrol/${rol}`, { headers })
                 .then(response => {
                     this.setState({ usuarios: response.data });
                 });
@@ -75,6 +53,9 @@ class Categorias extends Component {
     }
 
     deleteCategory = (id, qty) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         if (qty > 0) {
             swal.fire({
                 title: 'Ups',
@@ -92,7 +73,7 @@ class Categorias extends Component {
                 confirmButtonText: 'Okay'
             }).then(result => {
                 if (result.isConfirmed) {
-                    axios.delete(`http://127.0.0.1:4000/categorias/delete/${id}`)
+                    axios.delete(`http://127.0.0.1:4000/categorias/delete/${id}`, { headers })
                         .then(response => {
                             switch (response.status) {
                                 case 200: {
@@ -115,6 +96,13 @@ class Categorias extends Component {
                                     break;
                                 }
                             }
+                        }).catch(response => {
+                            swal.fire({
+                                title: 'Ups',
+                                text: 'No tienes permisos para hacer esto',
+                                icon: 'error',
+                                confirmButtonText: 'chale'
+                            });
                         });
                 }
             });
@@ -123,10 +111,11 @@ class Categorias extends Component {
     }
 
     getCategories = () => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         axios.get(`http://127.0.0.1:4000/categorias/${this.state.page}`, {
-            headers: {
-                "Authorization": localStorage.getItem("token")
-            }
+            headers
         }).then(response => {
             // if (response.data.length > 0) {
             this.setState({
@@ -138,12 +127,15 @@ class Categorias extends Component {
     }
 
     saveCategory = (categoria) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         axios.post("http://127.0.0.1:4000/categorias/agregar", {
             nombre: categoria.nombre,
             descripcion: categoria.descripcion,
             imagen: "default",
             productos: []
-        }).then(response => {
+        }, { headers }).then(response => {
             switch (response.status) {
                 case 202: {
                     swal.fire({
@@ -163,7 +155,7 @@ class Categorias extends Component {
                             categoria.imagen.name
                         );
                         axios.patch(`http://127.0.0.1:4000/categorias/upload-image/${response.data._id}`,
-                            formData).then(response => {
+                            formData, { headers }).then(response => {
                                 if (response.status === 200) {
                                     swal.fire({
                                         title: 'Nicesu',
@@ -178,24 +170,25 @@ class Categorias extends Component {
                     }
                     break;
                 }
-                case 500: {
-                    swal.fire({
-                        title: 'Ups',
-                        text: 'Error en el servidor',
-                        icon: 'error',
-                        confirmButtonText: 'chale'
-                    });
-                    break;
-                }
             }
+        }).catch(response => {
+            swal.fire({
+                title: 'Ups',
+                text: 'No tienes permisos para hacer esto',
+                icon: 'error',
+                confirmButtonText: 'chale'
+            });
         });
     }
 
     updateCategory = (categoria) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         axios.patch(`http://127.0.0.1:4000/categorias/update/${categoria.id}`, {
             nombre: categoria.nombre,
             descripcion: categoria.descripcion
-        }).then(response => {
+        }, { headers }).then(response => {
             if (categoria.imagen !== null && categoria.imagen !== undefined) {
                 const formData = new FormData();
                 formData.append(
@@ -204,7 +197,7 @@ class Categorias extends Component {
                     categoria.imagen.name
                 );
                 axios.patch(`http://127.0.0.1:4000/categorias/upload-image/${categoria.id}`,
-                    formData).then(response => {
+                    formData, { headers }).then(response => {
                         if (response.status === 200) {
 
                         }
@@ -216,10 +209,14 @@ class Categorias extends Component {
                 text: 'Categoría actualizada',
                 icon: 'success',
                 confirmButtonText: 'Okay'
-            }).then(result => {
-                if (result) {
-                    this.modalCategoria.current.setState({ show: false });
-                }
+            });
+            this.modalCategoria.current.setState({ show: false });
+        }).catch(response => {
+            swal.fire({
+                title: 'Ups',
+                text: 'No tienes permisos para hacer esto',
+                icon: 'error',
+                confirmButtonText: 'chale'
             });
         });
     }
@@ -255,7 +252,7 @@ class Categorias extends Component {
                     <td>{categoria.nombre}</td>
                     <td>{categoria.descripcion}</td>
                     <td>{categoria.productos.length}</td>
-                    <td><ModalCategorias button="Editar" imageButton="Cambiar foto" formButton="Actualizar" categoria={categoria} editarCategoria={this.updateCategory} /></td>
+                    <td><ModalCategorias token={this.props.token} button="Editar" imageButton="Cambiar foto" formButton="Actualizar" categoria={categoria} editarCategoria={this.updateCategory} /></td>
                     <td><Button variant="danger" onClick={() => this.deleteCategory(categoria._id, categoria.productos.length)}>Eliminar</Button></td>
                 </tr>
             );
@@ -271,6 +268,7 @@ class Categorias extends Component {
                 <Row className="mb-4">
                     <Col>
                         <ModalCategorias
+                            token={this.props.token}
                             ref={this.modalCategoria}
                             button="Agregar"
                             imageButton="Subir foto"

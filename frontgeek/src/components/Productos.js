@@ -34,10 +34,11 @@ class Productos extends Component {
     }
 
     getCategorias = () => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         axios.get("http://127.0.0.1:4000/productos/getNames", {
-            headers: {
-                "Authorization": localStorage.getItem("token")
-            }
+            headers
         }).then(response => {
             this.setState({ categorias: response.data });
         })
@@ -65,6 +66,9 @@ class Productos extends Component {
     // }
 
     deleteCategory = (id) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         swal.fire({
             title: 'mmm',
             text: 'Esta seguro que desea eliminar esta categoria?',
@@ -74,7 +78,7 @@ class Productos extends Component {
             confirmButtonText: 'Okay'
         }).then(result => {
             if (result.isConfirmed) {
-                axios.delete(`http://127.0.0.1:4000/productos/delete/${id}`)
+                axios.delete(`http://127.0.0.1:4000/productos/delete/${id}`, { headers })
                     .then(response => {
                         switch (response.status) {
                             case 200: {
@@ -97,16 +101,24 @@ class Productos extends Component {
                                 break;
                             }
                         }
+                    }).catch(response => {
+                        swal.fire({
+                            title: 'Ups',
+                            text: 'No tienes permisos para hacer esto',
+                            icon: 'error',
+                            confirmButtonText: 'chale'
+                        });
                     });
             }
         });
     }
 
     getProductos = () => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         axios.get(`http://127.0.0.1:4000/productos/${this.state.page}`, {
-            headers: {
-                "Authorization": localStorage.getItem("token")
-            }
+            headers
         }).then(response => {
             this.setState({
                 productos: response.data.productos,
@@ -116,13 +128,16 @@ class Productos extends Component {
     }
 
     guardarProducto = (producto) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         axios.post("http://127.0.0.1:4000/productos/agregar", {
             nombre: producto.nombre,
             descripcion: producto.descripcion,
             imagenes: [],
             precio: producto.precio,
             categoria: producto.categoria
-        }).then(response => {
+        }, { headers }).then(response => {
             switch (response.status) {
                 case 202: {
                     swal.fire({
@@ -144,7 +159,7 @@ class Productos extends Component {
                             )
                         }
                         axios.patch(`http://127.0.0.1:4000/productos/upload-image/${response.data._id}`,
-                            formData).then(response => {
+                            formData, { headers }).then(response => {
                                 if (response.status === 200) {
                                 }
                             });
@@ -155,11 +170,8 @@ class Productos extends Component {
                         text: 'Producto registrado',
                         icon: 'success',
                         confirmButtonText: 'Okay'
-                    }).then(result => {
-                        if (result) {
-                            this.modalProducto.current.setState({ show: false });
-                        }
                     });
+                    this.modalProducto.current.setState({ show: false });
                     break;
                 }
                 case 500: {
@@ -172,14 +184,24 @@ class Productos extends Component {
                     break;
                 }
             }
+        }).catch(response => {
+            swal.fire({
+                title: 'Ups',
+                text: 'No tienes permisos para hacer esto',
+                icon: 'error',
+                confirmButtonText: 'chale'
+            });
         });
     }
 
     updateProducto = (producto) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         axios.patch(`http://127.0.0.1:4000/productos/update/${producto.id}`, {
             nombre: producto.nombre,
             descripcion: producto.descripcion
-        }).then(response => {
+        }, { headers }).then(response => {
             if (producto.imagenes !== null && producto.imagenes !== undefined) {
                 let formData = new FormData();
                 for (let i = 0; i < producto.imagenes.length; i++) {
@@ -190,7 +212,7 @@ class Productos extends Component {
                     )
                 }
                 axios.patch(`http://127.0.0.1:4000/productos/upload-image/${producto.id}`,
-                    formData).then(response => {
+                    formData, { headers }).then(response => {
                         if (response.status === 200) {
 
                         }
@@ -202,10 +224,14 @@ class Productos extends Component {
                 text: 'Categoría actualizada',
                 icon: 'success',
                 confirmButtonText: 'Okay'
-            }).then(result => {
-                if (result) {
-
-                }
+            });
+            this.modalProducto.current.setState({ show: false });
+        }).catch(response => {
+            swal.fire({
+                title: 'Ups',
+                text: 'No tienes permisos para hacer esto',
+                icon: 'error',
+                confirmButtonText: 'chale'
             });
         });
     }
@@ -242,7 +268,7 @@ class Productos extends Component {
                     <td>{producto.nombre}</td>
                     <td>{producto.descripcion}</td>
                     <td>{producto.precio}</td>
-                    <td><ModalProductos categorias={this.state.categorias} button="Editar" imageButton="Cambiar foto" formButton="Actualizar" producto={producto} editarCategoria={this.updateProducto} /></td>
+                    <td><ModalProductos token={this.props.token} categorias={this.state.categorias} button="Editar" imageButton="Cambiar foto" formButton="Actualizar" producto={producto} editarCategoria={this.updateProducto} /></td>
                     <td><Button variant="danger" onClick={() => this.deleteCategory(producto._id)}>Eliminar</Button></td>
                 </tr>
             );
@@ -258,6 +284,7 @@ class Productos extends Component {
                 <Row className="mb-4">
                     <Col>
                         <ModalProductos
+                            token={this.props.token}
                             ref={this.modalProducto}
                             categorias={this.state.categorias}
                             button="Agregar"

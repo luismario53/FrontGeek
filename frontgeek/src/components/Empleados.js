@@ -87,6 +87,13 @@ class Empleados extends Component {
                                 break;
                             }
                         }
+                    }).catch(response => {
+                        swal.fire({
+                            title: 'Ups',
+                            text: 'No tienes permisos para hacer esto',
+                            icon: 'error',
+                            confirmButtonText: 'chale'
+                        });
                     });
             }
         });
@@ -174,6 +181,13 @@ class Empleados extends Component {
                     break;
                 }
             }
+        }).catch(response => {
+            swal.fire({
+                title: 'Ups',
+                text: 'No tienes permisos para hacer esto',
+                icon: 'error',
+                confirmButtonText: 'chale'
+            });
         });
     }
 
@@ -206,10 +220,14 @@ class Empleados extends Component {
                 text: 'Empleado actualizado',
                 icon: 'success',
                 confirmButtonText: 'Okay'
-            }).then(result => {
-                if (result) {
-                    this.modalEmpleado.current.setState({ show: false });
-                }
+            });
+            this.modalEmpleado.current.setState({ show: false });
+        }).catch(response => {
+            swal.fire({
+                title: 'Ups',
+                text: 'No tienes permisos para hacer esto',
+                icon: 'error',
+                confirmButtonText: 'chale'
             });
         });
     }

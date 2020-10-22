@@ -75,10 +75,13 @@ class ModalCategorias extends Component {
     }
 
     handleModal = (show) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         this.setState({ show: show }, () => {
             if (show) {
                 if (this.props.categoria !== undefined) {
-                    axios.get(`http://127.0.0.1:4000/categorias/get-image/${this.props.categoria._id}`)
+                    axios.get(`http://127.0.0.1:4000/categorias/get-image/${this.props.categoria._id}`,{headers})
                         .then(response => {
                             this.setState({
                                 id: this.props.categoria._id,

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Container } from 'react-bootstrap';
+import { Container, Button } from 'react-bootstrap';
 
 class Inicio extends Component {
 
@@ -10,10 +10,16 @@ class Inicio extends Component {
         };
     }
 
+    cerrarSesion = ()=>{
+        localStorage.removeItem("token");
+        window.location.reload();
+    }
+
     render() {
         return (
-            <Container>
-                <h1>Bienvenido al inicio</h1>
+            <Container className="mt-5">
+                <h1 className="mb-3">Bienvenido al inicio</h1>
+                <Button variant="info" onClick={this.cerrarSesion}>Cerrar sesión</Button>
             </Container>
         );
     }

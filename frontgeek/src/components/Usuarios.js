@@ -61,11 +61,13 @@ class Usuarios extends Component {
     }
 
     searchUserByRol = (e) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         var rol = this.capitalizeFirstLetter(e.target.value.toLowerCase());
         if (e.target.value.toLowerCase().length >= 3) {
-            axios.get(`http://127.0.0.1:4000/usuarios/getbyrol/${rol}`)
+            axios.get(`http://127.0.0.1:4000/usuarios/getbyrol/${rol}`, { headers })
                 .then(response => {
-                    console.log(response.data)
                     this.setState({ usuarios: response.data });
                 });
         } else if (e.target.value.toLowerCase().length == 0) {
@@ -74,6 +76,9 @@ class Usuarios extends Component {
     }
 
     deleteUser = (id) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         swal.fire({
             title: 'mmm',
             text: 'Esta seguro que desea eliminar este usuario?',
@@ -83,39 +88,39 @@ class Usuarios extends Component {
             confirmButtonText: 'Okay'
         }).then(result => {
             if (result.isConfirmed) {
-                axios.delete(`http://127.0.0.1:4000/usuarios/delete/${id}`)
-                    .then(response => {
-                        switch (response.status) {
-                            case 200: {
-                                swal.fire({
-                                    title: 'Listo',
-                                    text: 'Usuario eliminado',
-                                    icon: 'success',
-                                    confirmButtonText: 'Okay'
-                                });
-                                this.getUsers();
-                                break;
-                            }
-                            case 500: {
-                                swal.fire({
-                                    title: 'Ups',
-                                    text: 'Error en el servidor',
-                                    icon: 'error',
-                                    confirmButtonText: 'chale'
-                                });
-                                break;
-                            }
+                axios.delete(`http://127.0.0.1:4000/usuarios/delete/${id}`, { headers }).then(response => {
+                    switch (response.status) {
+                        case 200: {
+                            swal.fire({
+                                title: 'Listo',
+                                text: 'Usuario eliminado',
+                                icon: 'success',
+                                confirmButtonText: 'Okay'
+                            });
+                            this.getUsers();
+                            break;
                         }
-                    });
+                        case 500: {
+                            swal.fire({
+                                title: 'Ups',
+                                text: 'Error en el servidor',
+                                icon: 'error',
+                                confirmButtonText: 'chale'
+                            });
+                            break;
+                        }
+                    }
+                });
             }
         });
     }
 
     getUsers = () => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         axios.get(`http://127.0.0.1:4000/usuarios/${this.state.page}`, {
-            headers: {
-                "Authorization": localStorage.getItem("token")
-            }
+            headers
         }).then(response => {
             this.setState({
                 isAdmin: true,
@@ -147,13 +152,16 @@ class Usuarios extends Component {
     // }
 
     saveUser = (e) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         e.preventDefault();
         if (this.validator.allValid()) {
             axios.post("http://127.0.0.1:4000/usuarios/add", {
                 correo: this.state.correo,
                 password: this.state.password,
                 rol: this.state.rol
-            }).then(response => {
+            }, { headers }).then(response => {
                 switch (response.status) {
                     case 202: {
                         swal.fire({

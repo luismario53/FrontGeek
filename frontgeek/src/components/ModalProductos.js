@@ -115,11 +115,14 @@ class ModalProductos extends Component {
     }
 
     handleModal = (show) => {
+        var headers = {
+            "Authorization": this.props.token
+        }
         this.setState({ show: show }, () => {
             if (show) {
                 this.setCategorias();
                 if (this.props.producto !== undefined) {
-                    axios.get(`http://127.0.0.1:4000/productos/get-images/${this.props.producto._id}`)
+                    axios.get(`http://127.0.0.1:4000/productos/get-images/${this.props.producto._id}`, { headers })
                         .then(response => {
                             this.setState({
                                 id: this.props.producto._id,
