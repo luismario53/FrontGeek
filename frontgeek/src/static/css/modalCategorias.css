@@ -3,3 +3,7 @@ textarea.form-control{
     resize: none;
 }
 
+.sample-picture-categoria{
+    max-height: 35vh; 
+    width: 100% !important;
+}

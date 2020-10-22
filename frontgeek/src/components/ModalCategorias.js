@@ -5,7 +5,6 @@ import swal from 'sweetalert2';
 import sampleProfile from '../static/img/sample-profile.png';
 import SimpleReactValidator from 'simple-react-validator';
 import '../static/css/modalCategorias.css';
-import FileUploader from './FileUploader';
 
 class ModalCategorias extends Component {
 
@@ -133,7 +132,7 @@ class ModalCategorias extends Component {
                                     {this.validator.message('string', this.state.descripcion, 'required|string')}
                                 </Form.Group>
                                 <Form.Group>
-                                    <img src={this.state.samplePicture} className="sample-picture"></img>
+                                    <img src={this.state.samplePicture} className="sample-picture-categoria"></img>
                                 </Form.Group>
                                 <Form.Group>
                                     {/* <FileUploader /> */}

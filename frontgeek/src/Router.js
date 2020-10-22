@@ -9,6 +9,7 @@ import Categorias from '../src/components/Categorias';
 import Productos from '../src/components/Productos';
 import Login from '../src/components/Login';
 import Inicio from '../src/components/Inicio';
+import Empleados from "./components/Empleados";
 
 class Router extends Component {
 
@@ -55,7 +56,7 @@ class Router extends Component {
                     }
                     {!this.state.isLogin
                         ? <Redirect to="/" />
-                        : <Route exact path="/empleados" render={(props) => <Inicio {...props} isLogin={this.state.isLogin} />} />
+                        : <Route exact path="/empleados" render={(props) => <Empleados {...props} isLogin={this.state.isLogin} />} />
                     }
                     {!this.state.isLogin
                         ? <Redirect to="/" />

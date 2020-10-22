@@ -65,6 +65,7 @@ class Usuarios extends Component {
         if (e.target.value.toLowerCase().length >= 3) {
             axios.get(`http://127.0.0.1:4000/usuarios/getbyrol/${rol}`)
                 .then(response => {
+                    console.log(response.data)
                     this.setState({ usuarios: response.data });
                 });
         } else if (e.target.value.toLowerCase().length == 0) {
